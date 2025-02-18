@@ -20,7 +20,7 @@
    - Install AWS CLI: [AWS CLI Installation](https://aws.amazon.com/cli/) 📥
    - Configure AWS CLI: Run `aws configure` and input your credentials. ✨
 3. **Dork-Eye:** A Python library used to extract potential S3 URLs from **Dork-Eye** results. 🔎
-   - Install Dork-Eye: `pip install dork-eye` 🛠️
+   - Install Dork-Eye: `git clone https://github.com/BullsEye0/dorks-eye` 🛠️
 4. **figlet** (Optional): Used to generate a fun ASCII banner for the tool. 🎉
    - Install figlet:
      - **Linux (Ubuntu/Debian):**
