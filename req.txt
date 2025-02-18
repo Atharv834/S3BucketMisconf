@@ -1,0 +1,4 @@
+awscli
+figlet
+lolcat
+dork-eyes
