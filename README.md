@@ -21,7 +21,7 @@
    - Configure AWS CLI: Run `aws configure` and input your credentials. ✨
 3. **Dork-Eye:** A Python library used to extract potential S3 URLs from **Dork-Eye** results. 🔎
    - Install Dork-Eye: `git clone https://github.com/BullsEye0/dorks-eye` 🛠️
-4. **figlet** (Optional): Used to generate a fun ASCII banner for the tool. 🎉
+4. **figlet** : Used to generate a fun ASCII banner for the tool. 🎉
    - Install figlet:
      - **Linux (Ubuntu/Debian):**
        ```bash
@@ -33,7 +33,7 @@
        ```
      - **Windows:** You can use [Cygwin](https://www.cygwin.com/) to install figlet. 💻
 
-5. **lolcat** (Optional): Used to add funny "lolcat" messages for a fun experience. 😹
+5. **lolcat** : Used to add funny "lolcat" messages for a fun experience. 😹
    - Install lolcat:
      - **Linux (Ubuntu/Debian):**
        ```bash
@@ -62,7 +62,7 @@
 
 4. **Dork-Eye** should be installed using `git clone https://github.com/BullsEye0/dorks-eye`. 📚
 
-5. **Install figlet** and **lolcat** (Optional but recommended for better experience). 🌟
+5. **Install figlet** and **lolcat**  🌟
 
 ## Usage
 
