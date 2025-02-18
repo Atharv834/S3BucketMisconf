@@ -60,7 +60,7 @@
 
 3. Ensure **AWS CLI** is configured and that you have valid **permissions** to access AWS S3 resources. 🚀
 
-4. **Dork-Eye** should be installed using `pip install dork-eye`. 📚
+4. **Dork-Eye** should be installed using `git clone https://github.com/BullsEye0/dorks-eye`. 📚
 
 5. **Install figlet** and **lolcat** (Optional but recommended for better experience). 🌟
 
