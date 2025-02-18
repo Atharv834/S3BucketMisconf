@@ -1,4 +1,6 @@
 
+![S3BucketMisconf](https://github.com/Atharv834/S3BucketMisconf/blob/main/ray-so-export%20(1).png)
+
 # S3BucketMisconf - AWS S3 Bucket Misconfiguration Finder
 
 **S3BucketMisconf** is a tool designed to help you identify misconfigured **AWS S3 buckets** that might be publicly accessible. It checks if the S3 bucket is **valid** ✅ or **invalid** ❌, and gives feedback about the security status of each bucket. The tool uses **Dork-Eye** results and interacts with **AWS CLI** to validate the buckets.
@@ -123,4 +125,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Developed by **LordofHeaven**. 💻
 - Uses **AWS CLI**, **Dork-Eye**, **figlet**, and **lolcat** (for fun ASCII banners). 🎨
 - Inspired by security research and misconfiguration detection. 🔐
+
+[S3BucketMisconf - Demo Video](https://github.com/Atharv834/S3BucketMisconf/blob/main/s3scan.mp4)
 
