@@ -126,3 +126,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 [S3BucketMisconf - Demo Video](https://github.com/Atharv834/S3BucketMisconf/blob/main/s3scan.mp4)
 
+![](https://komarev.com/ghpvc/?username=Atharv834&color=orange)
