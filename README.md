@@ -101,15 +101,10 @@ Provide the file path where Dork-Eye has saved the **results**. 🗂️
 
 ### Example Output:
 
-- **Valid bucket**:
-  ```bash
-  ✅ my-bucket-name - VALID
-  ```
 
-- **Invalid bucket**:
-  ```bash
-  ❌ my-bucket-name - INVALID
-  ```
+![Output Image](https://github.com/Atharv834/S3BucketMisconf/blob/main/output.png)
+
+![Output Image](https://github.com/Atharv834/S3BucketMisconf/blob/main/output2.png)
 
 ### Step 4: Next Steps
 
@@ -127,7 +122,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Uses **AWS CLI**, **Dork-Eye**, **figlet**, and **lolcat** (for fun ASCII banners). 🎨
 - Inspired by security research and misconfiguration detection. 🔐
 
-[📄 View S3 Validation Results](https://github.com/Atharv834/S3BucketMisconf/blob/main/s3_validation_results.html)
 
 
 [S3BucketMisconf - Demo Video](https://github.com/Atharv834/S3BucketMisconf/blob/main/s3scan.mp4)
