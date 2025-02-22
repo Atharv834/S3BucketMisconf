@@ -1,5 +1,5 @@
-![S3BucketMisconf](https://github.com/Atharv834/S3BucketMisconf/blob/main/s3.png)
-![S3BucketMisconf](https://github.com/Atharv834/S3BucketMisconf/blob/main/s31.png)
+![S3BucketMisconf](https://github.com/Atharv834/S3BucketMisconf/blob/main/Images/s3.png)
+![S3BucketMisconf](https://github.com/Atharv834/S3BucketMisconf/blob/main/Images/s31.png)
 
 
 # S3BucketMisconf - AWS S3 Bucket Misconfiguration Finder
@@ -102,9 +102,9 @@ Provide the file path where Dork-Eye has saved the **results**. 🗂️
 ### Example Output:
 
 
-![Output Image](https://github.com/Atharv834/S3BucketMisconf/blob/main/output.png)
+![Output Image](https://github.com/Atharv834/S3BucketMisconf/blob/main/Images/output.png)
 
-![Output Image](https://github.com/Atharv834/S3BucketMisconf/blob/main/output2.png)
+![Output Image](https://github.com/Atharv834/S3BucketMisconf/blob/main/Images/output2.png)
 
 ### Step 4: Next Steps
 
