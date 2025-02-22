@@ -91,7 +91,7 @@ Provide the file path where Dork-Eye has saved the **results**. 🗂️
 
 ### Step 3: View Output
 
-- **Validation results** will be saved to `validated_buckets.txt`. 📝
+- **Validation results** will be saved to `s3_validation_results.html`. 📝
 - Only **valid URLs** will be saved to `valid.txt`. 📂
 
 ```bash
