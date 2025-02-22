@@ -1,4 +1,12 @@
 awscli
 figlet
 lolcat
-dork-eyes
+boto3
+rich
+tqdm
+concurrent.futures
+shutil
+os
+datetime
+re
+subprocess
