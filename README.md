@@ -69,7 +69,7 @@
 Run the script:
 
 ```bash
-python s3bucketmisconf.py
+python news3main.py
 ```
 
 It will ask you to **enter the Dork-Eye results file**:
