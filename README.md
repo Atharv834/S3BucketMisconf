@@ -127,6 +127,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Uses **AWS CLI**, **Dork-Eye**, **figlet**, and **lolcat** (for fun ASCII banners). 🎨
 - Inspired by security research and misconfiguration detection. 🔐
 
+[📄 View S3 Validation Results](https://github.com/Atharv834/S3BucketMisconf/blob/main/s3_validation_results.html)
+
+
 [S3BucketMisconf - Demo Video](https://github.com/Atharv834/S3BucketMisconf/blob/main/s3scan.mp4)
+
 
 ![](https://komarev.com/ghpvc/?username=Atharv834&style=the-for-badge&color=orange)
