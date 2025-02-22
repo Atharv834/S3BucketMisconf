@@ -24,7 +24,7 @@ validated_output_filename = "validated_buckets.txt"
 valid_urls_filename = "valid2.txt"
 html_output_filename = "s3_validation_results.html"
 
-print("\n[bold yellow][!] Make sure you have installed dork-eye! Install it using:[/bold yellow] [bold]pip install dork-eye[/bold]\n")
+print("\n[bold yellow][!] Make sure you have installed dork-eye!\n")
 
 pattern = re.compile(r"https://([a-zA-Z0-9-]+\.)?s3\.amazonaws\.com(/[^/]+)?/")
 
