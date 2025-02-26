@@ -8,7 +8,6 @@ import requests
 import re
 import json
 import math
-import hashlib
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn
@@ -18,7 +17,6 @@ from threading import Thread
 from concurrent.futures import ThreadPoolExecutor
 import threading
 import logging
-from datetime import datetime
 
 # Silence Flask HTTP logs
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
@@ -55,49 +53,41 @@ sensitive_filenames = [
     'mysql.cnf', 'pgpass.conf', 'exported-keys.p12'
 ]
 
-security_keywords = {
-    "AWS_ACCESS_KEY_ID": 10, "AWS_SECRET_ACCESS_KEY": 10, "DB_PASSWORD": 10, "PRIVATE_KEY": 10,
-    "Authorization": 8, "Bearer": 8, "stripe_secret_key": 10, "paypal_client_secret": 10,
-    "square_access_token": 10, "admin_password": 10, "root_password": 10, "GOOGLE_CLOUD_KEY": 10,
-    "AZURE_STORAGE_KEY": 10, "HEROKU_API_KEY": 10, "DOCKER_CONFIG_AUTH": 10, "NPM_TOKEN": 10,
-    "apikey": 8, "credentials": 8, "password": 8, "token": 8, "auth_token": 8, "secret_key": 10,
-    "access_token": 8, "refresh_token": 8, "client_id": 5, "client_secret": 10, "api_secret": 10,
-    "session_key": 8, "encryption_key": 10, "master_password": 10, "oauth_token": 8,
-    "database_pass": 10, "ssh_key": 10, "jwt_token": 8, "login_key": 8, "vault_key": 10,
-    "certificate": 8, "passphrase": 8, "security_token": 8, "config_key": 8, "private_token": 10
-}
+security_keywords = [
+    "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "DB_PASSWORD", "PRIVATE_KEY",
+    "Authorization", "Bearer", "stripe_secret_key", "paypal_client_secret",
+    "square_access_token", "admin_password", "root_password", "GOOGLE_CLOUD_KEY",
+    "AZURE_STORAGE_KEY", "HEROKU_API_KEY", "DOCKER_CONFIG_AUTH", "NPM_TOKEN",
+    "apikey", "credentials", "password", "token", "auth_token", "secret_key",
+    "access_token", "refresh_token", "client_id", "client_secret", "api_secret",
+    "session_key", "encryption_key", "master_password", "oauth_token",
+    "database_pass", "ssh_key", "jwt_token", "login_key", "vault_key",
+    "certificate", "passphrase", "security_token", "config_key", "private_token"
+]
 
-pii_keywords = {
-    "name": 3, "first_name": 3, "last_name": 3, "full_name": 3, "username": 3,
-    "email": 5, "email_address": 5, "mail": 5,
-    "phone": 5, "phone_number": 5, "mobile": 5, "telephone": 5, "contact_number": 5,
-    "ssn": 10, "social_security": 10, "social_security_number": 10,
-    "account": 5, "account_number": 5, "bank_account": 5, "credit_card": 8, "card_number": 8,
-    "address": 3, "city": 2, "zip": 2, "postal_code": 2,
-    "dob": 5, "date_of_birth": 5, "birthdate": 5,
-    "passport": 8, "driver_license": 8, "license_number": 8,
-    "tax_id": 8, "tin": 8, "national_id": 8
-}
+pii_keywords = [
+    "name", "first_name", "last_name", "full_name", "username",
+    "email", "email_address", "mail",
+    "phone", "phone_number", "mobile", "telephone", "contact_number",
+    "ssn", "social_security", "social_security_number",
+    "account", "account_number", "bank_account", "credit_card", "card_number",
+    "address", "city", "zip", "postal_code",
+    "dob", "date_of_birth", "birthdate",
+    "passport", "driver_license", "license_number",
+    "tax_id", "tin", "national_id"
+]
 
 personal_identifiers = ["name", "first_name", "last_name", "full_name", "username", "ssn", "social_security", "social_security_number", 
                        "account", "account_number", "card_number", "passport", "driver_license", "license_number", "tax_id", "tin", "national_id"]
 contact_identifiers = ["email", "email_address", "mail", "phone", "phone_number", "mobile", "telephone", "contact_number"]
 
 regex_patterns = {
-    "email": (re.compile(r'(?<!\w)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?!\w)'), "pii", 5),
-    "ssn_tax_id": (re.compile(r'(?<!\d)\d{3}[-.\s]\d{2}[-.\s]\d{4}(?!\d)'), "pii", 10),
-    "credit_card": (re.compile(r'(?<!\d)(?:\d{4}[-.\s]){3}\d{3,4}|\d{15,16}(?!\d)'), "pii", 8),
-    "phone_number": (re.compile(r'(?<!\d)(?:\+?\d{1,3}[-.\s])?(?:\d{3,4}[-.\s])\d{3,4}[-.\s]\d{4}(?!\d)'), "pii", 5),
-    "api_key": (re.compile(r'(?<!\w)[A-Za-z0-9_-]{32,100}(?!\w)'), "security", 10),
-    "ip_address": (re.compile(r'(?<!\d)(?:\d{1,3}\.){3}\d{1,3}(?!\d)'), "pii", 3),
-    "token_url": (re.compile(r'https?://[^\s]*\?.*token=[A-Za-z0-9_-]{10,100}'), "security", 8),
-    "crypto_wallet": (re.compile(r'(?<!\w)[13][a-km-zA-HJ-NP-Z1-9]{25,34}(?!\w)'), "pii", 8),
+    "email": (re.compile(r'(?<!\w)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?!\w)'), "pii"),
+    "ssn_tax_id": (re.compile(r'(?<!\d)\d{3}[-.\s]\d{2}[-.\s]\d{4}(?!\d)'), "pii"),
+    "credit_card": (re.compile(r'(?<!\d)(?:\d{4}[-.\s]){3}\d{3,4}|\d{15,16}(?!\d)'), "pii"),
+    "phone_number": (re.compile(r'(?<!\d)(?:\+?\d{1,3}[-.\s])?(?:\d{3,4}[-.\s])\d{3,4}[-.\s]\d{4}(?!\d)'), "pii"),
+    "api_key": (re.compile(r'(?<!\w)[A-Za-z0-9_-]{32,100}(?!\w)'), "security"),
 }
-
-blacklist_patterns = [
-    re.compile(r'\d{4}[-/]\d{2}[-/]\d{2}'),  # Date-like
-    re.compile(r'\w+[-\d]+-\w+'),  # Code-like
-]
 
 def extract_text_from_file(file_path):
     try:
@@ -120,11 +110,9 @@ def has_context(content, keyword, category):
     keyword_lower = keyword.lower()
     pattern = r'(?<!\w)' + re.escape(keyword_lower) + r'(?!\w)\s*[:=]\s*([^\s,]+)'
     matches = []
-    weight = security_keywords.get(keyword_lower, pii_keywords.get(keyword_lower, 5))  # Default weight 5 for customs
     for match in re.finditer(pattern, content_lower):
         value = match.group(1)[:20]
-        start_pos = match.start()
-        matches.append((f"[{category}] {keyword_lower}: {value}", 75, start_pos, weight))
+        matches.append((f"[{category}] {keyword_lower}: {value}", 75))
     return matches if matches else []
 
 def calculate_entropy(value):
@@ -140,12 +128,11 @@ def calculate_entropy(value):
 def check_regex_patterns(content):
     content_lower = content.lower()
     matches = []
-    for pattern_name, (pattern, category, weight) in regex_patterns.items():
+    for pattern_name, (pattern, category) in regex_patterns.items():
         keyword_context = f"{pattern_name.lower()}\s*[:=]"
         has_keyword = re.search(keyword_context, content_lower) is not None
         for match in pattern.finditer(content_lower):
             value = match.group(0)
-            start_pos = match.start()
             if pattern_name in ["credit_card", "phone_number"]:
                 digits = value.replace("-", "").replace(".", "").replace(" ", "")
                 if not (10 <= len(digits) <= 15 if pattern_name == "phone_number" else len(digits) in [15, 16]):
@@ -153,54 +140,15 @@ def check_regex_patterns(content):
             if pattern_name == "api_key":
                 if not re.search(r'[A-Za-z].*\d|\d.*[A-Za-z]', value) or calculate_entropy(value) < 3.5:
                     continue
-            if any(bp.search(value) for bp in blacklist_patterns):
-                continue
             confidence = 95 if has_keyword else 85
-            matches.append((f"[{category}] {pattern_name}: {value}", confidence, start_pos, weight))
+            matches.append((f"[{category}] {pattern_name}: {value}", confidence))
     return matches
-
-def get_file_metadata(bucket, file_path):
-    try:
-        command = f"aws s3api head-object --bucket {bucket} --key {file_path}"
-        result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=10)
-        if result.returncode == 0:
-            metadata = json.loads(result.stdout)
-            size = metadata.get("ContentLength", 0) / 1024  # KB
-            last_modified = datetime.strptime(metadata["LastModified"], "%Y-%m-%dT%H:%M:%S%z")
-            age_days = (datetime.now(last_modified.tzinfo) - last_modified).days
-            return size, age_days
-        return 0, None
-    except Exception:
-        return 0, None
-
-def is_public_bucket(bucket):
-    try:
-        command = f"aws s3api get-bucket-acl --bucket {bucket}"
-        result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=10)
-        if result.returncode == 0:
-            acl = json.loads(result.stdout)
-            for grant in acl.get("Grants", []):
-                if grant.get("Grantee", {}).get("URI", "") == "http://acs.amazonaws.com/groups/global/AllUsers":
-                    return True
-        return False
-    except Exception:
-        return False
-
-def calculate_anomaly_score(content):
-    words = re.findall(r'\w+', content.lower())
-    if not words:
-        return 0
-    word_count = len(words)
-    unique_chars = len(set(content))
-    randomness = unique_chars / len(content) if content else 0
-    return randomness * 100  # 0-100 scale, higher = more anomalous
 
 # Flask App for Real-Time Dashboard
 app = Flask(__name__)
 found_files = []
 lock = threading.Lock()
 false_positives = set()
-seen_hashes = set()
 
 if os.path.exists("false_positives.json"):
     with open("false_positives.json", "r") as f:
@@ -254,7 +202,6 @@ def scan_bucket(bucket, progress, task, scanned_files):
     global findings_count
     bucket_stats[bucket]['scanned'] += 1
     console.print(f"[bold green][+] Scanning bucket:[/bold green] {bucket}")
-    is_public = is_public_bucket(bucket)
     command = f"aws s3 ls s3://{bucket} --recursive --no-sign-request"
     try:
         result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=30)
@@ -269,8 +216,6 @@ def scan_bucket(bucket, progress, task, scanned_files):
             if full_url in scanned_files:
                 continue
             
-            file_weight = 5 if any(s in file_path.lower() for s in ["password", "secret", "key", "cred", "dump"]) else 0  # #9
-            
             if sensitive_extensions.search(file_path) or any(name in file_path.lower() for name in sensitive_filenames):
                 temp_file = f"/tmp/{os.path.basename(file_path)}"
                 download_command = f"aws s3 cp s3://{bucket}/{file_path} {temp_file} --no-sign-request"
@@ -280,33 +225,19 @@ def scan_bucket(bucket, progress, task, scanned_files):
                     continue
                 
                 content = extract_text_from_file(temp_file)
-                content_hash = hashlib.md5(content.encode('utf-8')).hexdigest()
-                if content_hash in seen_hashes:
-                    os.remove(temp_file)
-                    continue
-                seen_hashes.add(content_hash)
-                
-                size_kb, age_days = get_file_metadata(bucket, file_path)  # #2
-                file_weight += 5 if size_kb > 1024 else 0  # Big files (1MB+)
-                file_weight += 5 if age_days and age_days < 7 else 0  # Recent files (<1 week)
-                
-                anomaly_score = calculate_anomaly_score(content)  # #6
-                file_weight += 5 if anomaly_score > 50 else 0  # High randomness
                 
                 # Check all keywords and patterns
-                all_keywords = list(security_keywords.keys()) + list(pii_keywords.keys()) + custom_keywords
+                all_keywords = security_keywords + pii_keywords + custom_keywords
                 matches_with_confidence = []
                 pii_matches = []
                 personal_id_matches = []
                 contact_matches = []
                 security_matches = []
                 hit_count = 0
-                total_weight = file_weight
                 for keyword in security_keywords:
                     keyword_matches = has_context(content, keyword, "security")
                     security_matches.extend(keyword_matches)
                     hit_count += len(keyword_matches)
-                    total_weight += sum(w for _, _, _, w in keyword_matches)
                 for keyword in pii_keywords:
                     keyword_matches = has_context(content, keyword, "pii")
                     if keyword in personal_identifiers:
@@ -316,48 +247,36 @@ def scan_bucket(bucket, progress, task, scanned_files):
                     else:
                         pii_matches.extend(keyword_matches)
                     hit_count += len(keyword_matches)
-                    total_weight += sum(w for _, _, _, w in keyword_matches)
                 for keyword in custom_keywords:
                     keyword_matches = has_context(content, keyword, "custom")
                     pii_matches.extend(keyword_matches)
                     hit_count += len(keyword_matches)
-                    total_weight += sum(w for _, _, _, w in keyword_matches)
                 
                 regex_matches = check_regex_patterns(content)
-                for match, conf, pos, weight in regex_matches:
+                for match, conf in regex_matches:
                     if "[security]" in match:
-                        security_matches.append((match, conf, pos, weight))
+                        security_matches.append((match, conf))
                     elif any(pid in match for pid in personal_identifiers):
-                        personal_id_matches.append((match, conf, pos, weight))
+                        personal_id_matches.append((match, conf))
                     elif any(cid in match for cid in contact_identifiers):
-                        contact_matches.append((match, conf, pos, weight))
+                        contact_matches.append((match, conf))
                     else:
-                        pii_matches.append((match, conf, pos, weight))
-                    hit_count += 1
-                    total_weight += weight
+                        pii_matches.append((match, conf))
+                hit_count += len(regex_matches)
                 
-                # Smart linkage rule with weighting and proximity
-                if total_weight >= 10:  # Threshold for flagging
-                    if security_matches:
-                        matches_with_confidence = security_matches + personal_id_matches + contact_matches + pii_matches
-                    elif personal_id_matches:
-                        for pid_match, pid_conf, pid_pos, pid_weight in personal_id_matches:
-                            for contact_match, contact_conf, contact_pos, contact_weight in contact_matches:
-                                if abs(pid_pos - contact_pos) <= 50:
-                                    matches_with_confidence.extend([(m, c, p, w) for m, c, p, w in personal_id_matches + contact_matches if any(abs(p - pid_pos) <= 50 for _, _, p, _ in contact_matches)])
-                                    matches_with_confidence.extend(pii_matches)
-                                    break
-                            if matches_with_confidence:
-                                break
+                # Smart linkage rule
+                if security_matches:
+                    matches_with_confidence = security_matches + personal_id_matches + contact_matches + pii_matches  # Security always flags
+                elif personal_id_matches and (contact_matches or pii_matches):  # Personal ID + Contact or Other PII
+                    matches_with_confidence = personal_id_matches + contact_matches + pii_matches
                 
                 if matches_with_confidence:
-                    unique_matches_with_conf = list(set((match, conf, weight) for match, conf, _, weight in matches_with_confidence if match not in false_positives))
-                    unique_matches = [match for match, _, _ in unique_matches_with_conf]
+                    unique_matches = list(set(match[0] for match in matches_with_confidence if match[0] not in false_positives))
                     if not unique_matches:
                         os.remove(temp_file)
                         continue
-                    avg_confidence = sum(conf for _, conf, _ in unique_matches_with_conf) / len(unique_matches_with_conf) if unique_matches_with_conf else 0
-                    risk_level = "HIGH" if security_matches or (is_public and total_weight >= 15) else "MEDIUM"  # #4
+                    avg_confidence = sum(conf for _, conf in matches_with_confidence) / len(matches_with_confidence) if matches_with_confidence else 0
+                    risk_level = "HIGH" if security_matches else "MEDIUM"
                     file_ext = full_url.split('.')[-1].upper()
                     with lock:
                         findings_count += 1
@@ -376,7 +295,7 @@ def scan_bucket(bucket, progress, task, scanned_files):
                         console.print(f"[bold red][!] Sensitive File Found: {risk_level} [/bold red]")
                         console.print(f"[yellow]Information Disclosed:[/yellow] {', '.join(unique_matches)}")
                         console.print(f"[blue]URL:[/blue] {full_url}")
-                        console.print(f"[cyan]Hits:[/cyan] {len(unique_matches)}, Confidence: {round(avg_confidence)}%, Weight: {total_weight}")
+                        console.print(f"[cyan]Hits:[/cyan] {len(unique_matches)}, Confidence: {round(avg_confidence)}%")
                         console.print("-" * 100 + "\n")
                 
                 os.remove(temp_file)
@@ -426,12 +345,6 @@ def save_results():
         preview_message = f"Found <b>{high_count}</b> HIGH, <b>{medium_count}</b> MEDIUM risks"
         send_telegram_message(preview_message)
 
-        # Calculate bucket heatmap data
-        bucket_counts = {bucket: stats['high'] + stats['medium'] for bucket, stats in bucket_stats.items()}
-        max_count = max(bucket_counts.values(), default=1)
-        heatmap_css = "\n".join(f"#bucket-{i} {{ background: rgba(231, {int(255 * (count / max_count))}, 32, 0.5); }}" 
-                               for i, (bucket, count) in enumerate(bucket_counts.items()))
-
         html_content = f"""
 <!DOCTYPE html>
 <html lang="en">
@@ -462,13 +375,6 @@ def save_results():
         .footer a:hover {{ text-decoration: underline; }}
         a {{ color: #00ffcc; text-decoration: none; }}
         a:hover {{ text-decoration: underline; }}
-        .chart {{ width: 90%; margin: 20px auto; }}
-        .bar {{ height: 20px; margin: 5px 0; }}
-        .high-bar {{ background: #e74320; }}
-        .medium-bar {{ background: #e79220; }}
-        .heatmap {{ margin: 20px auto; width: 90%; }}
-        .bucket-row {{ padding: 10px; margin: 5px 0; color: #fff; }}
-        {heatmap_css}
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', function() {{
@@ -501,21 +407,8 @@ def save_results():
             row_class = 'high' if risk_level == 'HIGH' else 'medium'
             html_content += f"""<tr class="{row_class}"><td><a href="{url}" target="_blank">{url}</a></td><td>{risk_level}</td><td><span class="file-type {file_type_class}">{file_ext.upper()}</span></td><td>{disclosed_text}</td><td>{info['hits']}</td><td>{info['confidence']}%</td></tr>"""
 
-        html_content += f"""
-    </table>
-    <div class="chart">
-        <h2>Risk Distribution</h2>
-        <div class="bar high-bar" style="width: {high_count * 10}px;">HIGH: {high_count}</div>
-        <div class="bar medium-bar" style="width: {medium_count * 10}px;">MEDIUM: {medium_count}</div>
-    </div>
-    <div class="heatmap">
-        <h2>Bucket Heatmap</h2>
-"""
-        for i, (bucket, count) in enumerate(bucket_counts.items()):
-            html_content += f"""<div class="bucket-row" id="bucket-{i}">{bucket}: {count} findings</div>"""
-        
         html_content += """
-    </div>
+    </table>
     <h2>Bucket Summary</h2>
     <table>
         <tr><th>Bucket</th><th>HIGH Risks</th><th>MEDIUM Risks</th><th>Files Scanned</th></tr>
