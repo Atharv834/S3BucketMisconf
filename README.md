@@ -50,7 +50,7 @@
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/S3BucketMisconf.git
+   git clone https://github.com/Atharv834/S3BucketMisconf.git
    cd S3BucketMisconf
    ```
 
