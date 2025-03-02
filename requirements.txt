@@ -1,10 +1,4 @@
 
-concurrent.futures
-shutil
-os
-datetime
-re
-subprocess
 awscli
 pyfiglet
 lolcat
