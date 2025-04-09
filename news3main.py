@@ -7,7 +7,7 @@ import datetime
 from tqdm import tqdm
 from rich import print
 from rich.console import Console
-from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn
+from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn  # Fixed this line
 
 console = Console()
 
@@ -30,7 +30,7 @@ pattern = re.compile(r"https://([a-zA-Z0-9-]+\.)?s3\.amazonaws\.com(/[^/]+)?/")
 
 try:
     with open(input_filename, "r", encoding="utf-8") as file:
-        urls = list(set(line.strip() for line in file if pattern.search(line)))  # Remove duplicates
+        urls = [line.strip() for line in file if pattern.search(line)]
 except FileNotFoundError:
     print("[red][!] File not found! Please check the filename and try again.[/red]")
     exit(1)
@@ -39,7 +39,22 @@ if not urls:
     print("[red][!] No valid S3 URLs found in the file![red]")
     exit(1)
 
-print(f"\n[bold green][✔] Found {len(urls)} unique potential S3 bucket URLs![bold green]\n")
+# Deduplicate URLs based on bucket name before scanning
+unique_urls = {}
+for url in urls:
+    match = pattern.search(url)
+    if match:
+        subdomain = match.group(1)
+        next_directory = match.group(2)
+        if subdomain:
+            bucket_name = subdomain.rstrip('.')
+        elif next_directory:
+            bucket_name = next_directory.strip('/')
+        if bucket_name not in unique_urls:
+            unique_urls[bucket_name] = url
+
+urls = list(unique_urls.values())
+print(f"\n[bold green][✔] Found {len(urls)} unique S3 bucket URLs after deduplication![bold green]\n")
 
 def check_bucket(url):
     match = pattern.search(url)
@@ -58,11 +73,13 @@ def check_bucket(url):
     command = f"aws s3 ls s3://{bucket_name} --no-sign-request"
     
     try:
-        result = subprocess.run(command, shell=True, capture_output=True, text=True)
+        result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=10)
         if "AccessDenied" in result.stderr or "NoSuchBucket" in result.stderr:
             return f"[❌] {bucket_name} - [bold red]INVALID[/bold red]", None, full_s3_url
         else:
             return f"[✅] {bucket_name} - [bold green]VALID[/bold green]\n{result.stdout}", url, full_s3_url
+    except subprocess.TimeoutExpired:
+        return f"[❌] {bucket_name} - [bold red]TIMEOUT[/bold red]", None, full_s3_url
     except Exception as e:
         return f"[❌] {bucket_name} - [bold red]ERROR[/bold red]\n{str(e)}", None, full_s3_url
 
@@ -79,8 +96,8 @@ with Progress(
 ) as progress:
     task = progress.add_task("[bold green]Scanning S3 Buckets...[bold green]", total=len(urls))
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=15) as executor:
-        futures = {executor.submit(check_bucket, url): url for url in urls}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
+        futures = [executor.submit(check_bucket, url) for url in urls]
 
         for future in concurrent.futures.as_completed(futures):
             progress.update(task, advance=1)
@@ -96,8 +113,6 @@ with open(validated_output_filename, "w", encoding="utf-8") as output_file:
 
 with open(valid_urls_filename, "w", encoding="utf-8") as valid_file:
     valid_file.write("\n".join(valid_urls) + "\n")
-
-unique_validated_results = list(set(validated_results))  # Remove duplicate results
 
 html_content = f"""
 <!DOCTYPE html>
@@ -125,7 +140,7 @@ html_content = f"""
         <tr><th>Bucket URL</th><th>Status</th><th>Details</th></tr>
 """
 
-for result, status, full_url in unique_validated_results:
+for result, status, full_url in validated_results:
     details = " - ".join(result.split(" - ")[1:]) if " - " in result else ""
     status_text = "VALID" if status else "Access denied or not accessible"
     row_class = "valid" if status else "invalid"
@@ -141,4 +156,3 @@ with open(html_output_filename, "w", encoding="utf-8") as html_file:
     html_file.write(html_content)
 
 print(f"\n[bold green][✔] HTML results saved to {html_output_filename}[bold green]")
-
