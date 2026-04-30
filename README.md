@@ -118,7 +118,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Credits
 
-- Developed by **LordofHeaven**. 💻
 - Uses **AWS CLI**, **Dork-Eye**, **figlet**, and **lolcat** (for fun ASCII banners). 🎨
 - Inspired by security research and misconfiguration detection. 🔐
 
